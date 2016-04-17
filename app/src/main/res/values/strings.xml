@@ -5,4 +5,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">刷新</string>
+
+    <string name="tab_text_1">所有</string>
+    <string name="tab_text_2">A区</string>
+    <string name="tab_text_3">B区</string>
+    <string name="tab_text_4">C区</string>
+    <string name="tab_text_5">D区</string>
 </resources>

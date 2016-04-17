@@ -1,31 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.externie.cqulecture.MainActivity"
     tools:showIn="@layout/app_bar_main"
-    android:padding="0dp">
+    android:descendantFocusability="blocksDescendants">
 
-    <com.github.ksoichiro.android.observablescrollview.ObservableListView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/list"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ca4f4f" />
+        android:orientation="vertical">
     <com.cjj.MaterialRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#ffff0000"
         >
+
 
         <WebView
             android:layout_width="match_parent"
@@ -34,8 +28,9 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:background="#ff00ff00"/>
 
     </com.cjj.MaterialRefreshLayout>
-
-</RelativeLayout>
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>

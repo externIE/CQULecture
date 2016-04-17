@@ -5,10 +5,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +21,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
 import com.github.ksoichiro.android.observablescrollview.ObservableListView;
@@ -27,6 +31,16 @@ import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCal
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import cn.bingoogolapple.bgabanner.BGABanner;
+import engine.Engine;
+import model.BannerModel;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,ObservableScrollViewCallbacks {
@@ -36,10 +50,9 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        }
 
+        Toolbar tb = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(tb);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -49,36 +62,87 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
-
 //        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 //        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 //                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 //        drawer.setDrawerListener(toggle);
 //        toggle.syncState();
-
 //        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 //        navigationView.setNavigationItemSelectedListener(this);
+//        mOListView = (ObservableListView) findViewById(R.id.list);
+//        mOListView.setScrollViewCallbacks(this);
+//
+//        ArrayList<String> items = new ArrayList<String>();
+//        for (int i = 1; i <= 100; i++) {
+//            items.add("Item " + i);
+//        }
 
+//        mOListView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items));
 
-
-        mOListView = (ObservableListView) findViewById(R.id.list);
-        mOListView.setScrollViewCallbacks(this);
-
-        ArrayList<String> items = new ArrayList<String>();
-        for (int i = 1; i <= 100; i++) {
-            items.add("Item " + i);
-        }
-        mOListView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items));
-
-//        initRefreshView();
-//        initWebView();
+        initBannarView();
+        initTabLayout();
+        initRefreshView();
+        initWebView();
     }
 
     private MaterialRefreshLayout materialRefreshLayout;
     private ObservableListView mOListView;
     private WebView wv;
 
+    private void initBannarView(){
+        final BGABanner banner = (BGABanner)findViewById(R.id.banner);
+        final List<ImageView> imageViews = mallocImageViews(4);
+        banner.setViews(imageViews);
+        Engine engine = getEngine("http://externie.com/");
+        engine.fiveItem().enqueue(new Callback<BannerModel>() {
+            @Override
+            public void onResponse(Call<BannerModel> call, Response<BannerModel> response) {
+                System.out.println("成功");
+                BannerModel model = response.body();
+                List<String> tips = new ArrayList<String>();
+                for (int i = 0; i < model.pages.size(); i++) {
+                    Glide.with(MainActivity.this).load(model.pages.get(i).img).placeholder(R.drawable.holdimg).error(R.drawable.holdimg).into(imageViews.get(i));
+                    tips.add(model.pages.get(i).profile);
+                    // 为每一页添加点击事件
+                    final int finalPosition = i;
+                    imageViews.get(i).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            //Toast.makeText(App.getInstance(), "点击了第" + (finalPosition + 1) + "页", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                banner.setTips(tips);
+            }
+
+            @Override
+            public void onFailure(Call<BannerModel> call, Throwable t) {
+                System.out.println("失败");
+            }
+        });
+    }
+
+    private Engine getEngine(String url){
+        return new Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build().create(Engine.class);
+    }
+    private List<ImageView> mallocImageViews(int count){
+        List<ImageView> views = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            views.add((ImageView) getLayoutInflater().inflate(R.layout.view_image, null));
+        }
+        return views;
+    }
+    private void initTabLayout(){
+        TabLayout tabs = (TabLayout)findViewById(R.id.tabLayout);
+        tabs.addTab(tabs.newTab().setText(R.string.tab_text_1));
+        tabs.addTab(tabs.newTab().setText(R.string.tab_text_2));
+        tabs.addTab(tabs.newTab().setText(R.string.tab_text_3));
+        tabs.addTab(tabs.newTab().setText(R.string.tab_text_4));
+        tabs.addTab(tabs.newTab().setText(R.string.tab_text_5));
+    }
     private void initRefreshView(){
         materialRefreshLayout = (MaterialRefreshLayout) findViewById(R.id.refresh);
         materialRefreshLayout.setIsOverLay(true);
