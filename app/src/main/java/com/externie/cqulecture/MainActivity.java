@@ -1,27 +1,28 @@
 package com.externie.cqulecture;
 
-import android.graphics.Color;
-import android.os.Build;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 
 import com.bumptech.glide.Glide;
 import com.cjj.MaterialRefreshLayout;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                wv.reload();
+                mWebView.reload();
             }
         });
 
@@ -81,13 +82,33 @@ public class MainActivity extends AppCompatActivity
 
         initBannarView();
         initTabLayout();
-        initRefreshView();
+//        initRefreshView();
         initWebView();
+        initPopupView();
+        initLoadingView();
     }
 
     private MaterialRefreshLayout materialRefreshLayout;
     private ObservableListView mOListView;
-    private WebView wv;
+    private WebView mWebView;
+    private WebView mWebView4Profile;
+    private PopupWindow popWin;
+    private View loadingView;
+
+    private void initLoadingView(){
+        loadingView = findViewById(R.id.loadView);
+        loadingView.setVisibility(View.INVISIBLE);
+    }
+
+    private void showLoadingView(){
+        if (loadingView.getVisibility() == View.VISIBLE)
+            return;
+        loadingView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoadingView(){
+        loadingView.setVisibility(View.INVISIBLE);
+    }
 
     private void initBannarView(){
         final BGABanner banner = (BGABanner)findViewById(R.id.banner);
@@ -152,7 +173,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
                 //下拉刷新...
-                wv.reload();
+                mWebView.reload();
             }
 
             @Override
@@ -162,25 +183,34 @@ public class MainActivity extends AppCompatActivity
         });
     }
     private void initWebView(){
-        wv = (WebView)findViewById(R.id.webView);
-        wv.loadUrl("http://externie.github.io/externieblog/");
-        wv.setWebViewClient(new WebViewClient() {
+        mWebView = (WebView)findViewById(R.id.webView);
+        mWebView.loadUrl("http://externie.github.io/externieblog/");
+        mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
-                view.loadUrl(url);
+                if (url.equals("http://externie.github.io/externieblog/"))
+                    view.loadUrl(url);
+                else{
+                    if (!url.equals(mWebView4Profile.getUrl())){
+                        mWebView4Profile.loadUrl(url);
+                    }else{
+                        changePopupWindowState();
+                    }
+                }
                 return true;
             }
         });
-        wv.setWebChromeClient(new WebChromeClient() {
+        mWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 // TODO Auto-generated method stub
                 if (newProgress == 100) {
                     // 网页加载完成
                     // 结束下拉刷新...
-                    materialRefreshLayout.finishRefresh();
+                    if (materialRefreshLayout != null)
+                        materialRefreshLayout.finishRefresh();
 
                 } else {
                     // 加载中
@@ -189,7 +219,8 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        WebSettings settings = wv.getSettings();
+        System.out.println("ContentHeight:" + mWebView.getContentHeight());
+        WebSettings settings = mWebView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
     }
@@ -200,9 +231,9 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            if(wv.canGoBack())
+            if(mWebView.canGoBack())
             {
-                wv.goBack();//返回上一页面
+                mWebView.goBack();//返回上一页面
             }else{
                 super.onBackPressed();
             }
@@ -225,7 +256,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            wv.reload();
+            mWebView.reload();
             return true;
         }
 
@@ -278,6 +309,68 @@ public class MainActivity extends AppCompatActivity
             if (!ab.isShowing()) {
                 ab.show();
             }
+        }
+    }
+
+    private void initPopupView(){
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.popupview, null);
+        view.setFocusableInTouchMode(true);
+        //网页部分
+        mWebView4Profile = (WebView)view.findViewById(R.id.webView);
+        mWebView4Profile.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // TODO Auto-generated method stub
+                //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        mWebView4Profile.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                // TODO Auto-generated method stub
+                if (newProgress == 100) {
+                    // 网页加载完成
+                    hideLoadingView();
+                    changePopupWindowState();
+                } else {
+                    // 加载中
+                    showLoadingView();
+                }
+
+            }
+        });
+        WebSettings settings = mWebView4Profile.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        //浮动按钮部分
+        FloatingActionButton fab = (FloatingActionButton)view.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar.make(v, "你好啊！！！！", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            }
+        });
+        //Popupwindow部分
+        popWin = new PopupWindow(view, LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, true);
+
+        popWin.setAnimationStyle(R.style.ExternIEDialogAnimation);
+        popWin.setTouchable(true);
+        popWin.setOutsideTouchable(true);
+        BitmapDrawable bd = new BitmapDrawable();
+        popWin.setBackgroundDrawable(bd);
+
+    }
+
+    private void changePopupWindowState() {
+        if (popWin.isShowing()) {
+            popWin.dismiss();
+        }else {
+            View text = findViewById(R.id.textforhide);
+            popWin.showAtLocation(text, Gravity.BOTTOM, 0, 0);
         }
     }
 }

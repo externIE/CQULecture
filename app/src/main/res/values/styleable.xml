@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PopupView">
+        <attr name="maxHeightRatio" format="reference|float" />
+        <attr name="maxHeightDimen" format="reference|dimension" />
+    </declare-styleable>
+</resources>

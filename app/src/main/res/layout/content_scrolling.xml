@@ -7,30 +7,32 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.externie.cqulecture.MainActivity"
     tools:showIn="@layout/app_bar_main"
-    android:descendantFocusability="blocksDescendants">
-
-    <LinearLayout
+    android:background="#000"
+    android:layout_weight="0.9">
+    <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-    <com.cjj.MaterialRefreshLayout
-        android:id="@+id/refresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ffff0000"
-        >
+        android:id="@+id/webView"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:background="#ff00ffff"/>
 
+    <!--<LinearLayout-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:padding="10dp"-->
+        <!--android:background="#ff00ff00"-->
+        <!--android:orientation="vertical">-->
+    <!--<com.cjj.MaterialRefreshLayout-->
+        <!--android:id="@+id/refresh"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:background="#ffff0000">-->
 
-        <WebView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/webView"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:background="#ff00ff00"/>
+        <!-- -->
 
-    </com.cjj.MaterialRefreshLayout>
-    </LinearLayout>
+    <!--</com.cjj.MaterialRefreshLayout>-->
+    <!--</LinearLayout>-->
 </android.support.v4.widget.NestedScrollView>

@@ -50,4 +50,9 @@
         <item name="banner_tipTextColor">@android:color/white</item>
     </style>
 
+    <style name="ExternIEDialogAnimation">
+        <item name="android:windowEnterAnimation">@animator/ease_fade_in</item>
+        <item name="android:windowExitAnimation">@animator/ease_fade_out</item>
+    </style>
+
 </resources>
