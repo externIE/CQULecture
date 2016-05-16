@@ -5,5 +5,6 @@ package model;
  */
 public class BannerPage {
     public String img;
+    public String pageurl;
     public String profile;
 }

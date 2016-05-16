@@ -18,7 +18,7 @@ public interface Engine {
     @GET("4item.json")
     Call<BannerModel> fourItem();
 
-    @GET("5.json")
+    @GET("5item.json")
     Call<BannerModel> fiveItem();
 
     @GET("6item.json")

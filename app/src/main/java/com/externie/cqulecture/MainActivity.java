@@ -1,21 +1,32 @@
 package com.externie.cqulecture;
 
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,19 +34,25 @@ import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TableLayout;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
+import com.externie.gesture.MyGestureListener;
 import com.github.ksoichiro.android.observablescrollview.ObservableListView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 
+import java.lang.annotation.Annotation;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.bingoogolapple.bgabanner.BGABanner;
 import engine.Engine;
+import com.externie.views.*;
 import model.BannerModel;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,7 +61,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,ObservableScrollViewCallbacks {
+        implements NavigationView.OnNavigationItemSelectedListener,ObservableScrollViewCallbacks,JavascriptInterface {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,48 +69,67 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-        Toolbar tb = (Toolbar)findViewById(R.id.toolbar);
-        setSupportActionBar(tb);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            //透明状态栏
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            //透明导航栏
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mWebView.reload();
-            }
-        });
-
-//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//        drawer.setDrawerListener(toggle);
-//        toggle.syncState();
-//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-//        navigationView.setNavigationItemSelectedListener(this);
-//        mOListView = (ObservableListView) findViewById(R.id.list);
-//        mOListView.setScrollViewCallbacks(this);
-//
-//        ArrayList<String> items = new ArrayList<String>();
-//        for (int i = 1; i <= 100; i++) {
-//            items.add("Item " + i);
-//        }
-
-//        mOListView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items));
+        mTb = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(mTb);
+        mToolbarLayout = (CollapsingToolbarLayout)findViewById(R.id.collapsingToolbarLayout);
 
         initBannarView();
         initTabLayout();
-//        initRefreshView();
         initWebView();
         initPopupView();
         initLoadingView();
+        initNestedScrollView();
     }
 
+    private CollapsingToolbarLayout mToolbarLayout;
+    private Toolbar mTb;
     private MaterialRefreshLayout materialRefreshLayout;
-    private ObservableListView mOListView;
     private WebView mWebView;
     private WebView mWebView4Profile;
     private PopupWindow popWin;
     private View loadingView;
+    private NestedScrollView mNestedScrollView;
+    private GestureDetector mGestureDetector;
+    private TabLayout mTabs;
+    private Menu mMenu;
+
+    private void initNestedScrollView(){
+        mNestedScrollView = (NestedScrollView)findViewById(R.id.scrollView_content);
+//        mGestureDetector = new GestureDetector(this,new MyGestureListener(this));
+//        mNestedScrollView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                return mGestureDetector.onTouchEvent(event);
+//            }
+//        });
+    }
+
+    public void switchLeftTab(){
+        if (mTabs.getSelectedTabPosition()==0){
+            Toast.makeText(MainActivity.this,"到最左边了！",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int leftTabPosition = (mTabs.getSelectedTabPosition()-1)%mTabs.getTabCount();
+//        System.out.println("tabPosition:"+leftTabPosition);
+        mTabs.getTabAt(leftTabPosition).select();
+    }
+
+    public void switchRightTab(){
+        if (mTabs.getSelectedTabPosition()==mTabs.getTabCount()-1){
+            Toast.makeText(MainActivity.this,"到最右边了！",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int rightTabPosition = (mTabs.getSelectedTabPosition()+1)%mTabs.getTabCount();
+//        System.out.println("tabPosition:"+rightTabPosition);
+        mTabs.getTabAt(rightTabPosition).select();
+    }
 
     private void initLoadingView(){
         loadingView = findViewById(R.id.loadView);
@@ -111,25 +147,43 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initBannarView(){
-        final BGABanner banner = (BGABanner)findViewById(R.id.banner);
-        final List<ImageView> imageViews = mallocImageViews(4);
+        final EXBanner banner = (EXBanner)findViewById(R.id.banner);
+        final List<URLImageView> imageViews = mallocImageViews(4);
         banner.setViews(imageViews);
-        Engine engine = getEngine("http://externie.com/");
-        engine.fiveItem().enqueue(new Callback<BannerModel>() {
+        banner.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+//                banner.getChildAt(position);
+//                Log.d("TitleSet:",banner.getCurrentTip());
+                String tmp_tip = banner.getCurrentTip();
+                mToolbarLayout.setTitle(tmp_tip);
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        Engine engine = getEngine("http://externie.com/hotlectureinfo/");
+        engine.fourItem().enqueue(new Callback<BannerModel>() {
             @Override
             public void onResponse(Call<BannerModel> call, Response<BannerModel> response) {
-                System.out.println("成功");
-                BannerModel model = response.body();
+                final BannerModel model = response.body();
                 List<String> tips = new ArrayList<String>();
                 for (int i = 0; i < model.pages.size(); i++) {
-                    Glide.with(MainActivity.this).load(model.pages.get(i).img).placeholder(R.drawable.holdimg).error(R.drawable.holdimg).into(imageViews.get(i));
+                    Glide.with(MainActivity.this).load(model.pages.get(i).img).placeholder(R.drawable.holdimg).error(R.drawable.holdimg).into(imageViews.get(i).getImageView());
                     tips.add(model.pages.get(i).profile);
-                    // 为每一页添加点击事件
-                    final int finalPosition = i;
+                    imageViews.get(i).setWithURL(model.pages.get(i).pageurl);
                     imageViews.get(i).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //Toast.makeText(App.getInstance(), "点击了第" + (finalPosition + 1) + "页", Toast.LENGTH_SHORT).show();
+                            URLImageView urliv = (URLImageView)v;
+                            jumpToPostActivity(urliv.getWithURL());
                         }
                     });
                 }
@@ -149,20 +203,65 @@ public class MainActivity extends AppCompatActivity
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(Engine.class);
     }
-    private List<ImageView> mallocImageViews(int count){
-        List<ImageView> views = new ArrayList<>();
+    private List<URLImageView> mallocImageViews(int count){
+        List<URLImageView> views = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            views.add((ImageView) getLayoutInflater().inflate(R.layout.view_image, null));
+            views.add((URLImageView) getLayoutInflater().inflate(R.layout.view_image, null));
         }
         return views;
     }
     private void initTabLayout(){
-        TabLayout tabs = (TabLayout)findViewById(R.id.tabLayout);
-        tabs.addTab(tabs.newTab().setText(R.string.tab_text_1));
-        tabs.addTab(tabs.newTab().setText(R.string.tab_text_2));
-        tabs.addTab(tabs.newTab().setText(R.string.tab_text_3));
-        tabs.addTab(tabs.newTab().setText(R.string.tab_text_4));
-        tabs.addTab(tabs.newTab().setText(R.string.tab_text_5));
+        mTabs = (TabLayout)findViewById(R.id.tabLayout);
+        mTabs.addTab(mTabs.newTab().setText(R.string.tab_text_1));
+        mTabs.addTab(mTabs.newTab().setText(R.string.tab_text_2));
+        mTabs.addTab(mTabs.newTab().setText(R.string.tab_text_3));
+        mTabs.addTab(mTabs.newTab().setText(R.string.tab_text_4));
+        mTabs.addTab(mTabs.newTab().setText(R.string.tab_text_5));
+        mTabs.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            private TabLayout.Tab lastTab = null;
+
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                String from = "right";
+                if (lastTab != null && lastTab.getPosition() > tab.getPosition())
+                    from = "left";
+
+                String jsfunc;
+                String campus = "ALL";
+
+                if (tab.getText().toString().equals(getString(R.string.tab_text_1))) {
+                    campus = "ALL";
+                }
+                if (tab.getText().toString().equals(getString(R.string.tab_text_2))) {
+                    campus = "A";
+                }
+                if (tab.getText().toString().equals(getString(R.string.tab_text_3))) {
+                    campus = "B";
+                }
+                if (tab.getText().toString().equals(getString(R.string.tab_text_4))) {
+                    campus = "C";
+                }
+                if (tab.getText().toString().equals(getString(R.string.tab_text_5))) {
+                    campus = "D";
+                }
+
+                jsfunc = "javascript:select('" + campus + "','" + from + "')";
+
+                mWebView.loadUrl(jsfunc);
+
+                mNestedScrollView.smoothScrollTo(0, 0);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                lastTab = tab;
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
     }
     private void initRefreshView(){
         materialRefreshLayout = (MaterialRefreshLayout) findViewById(R.id.refresh);
@@ -192,12 +291,13 @@ public class MainActivity extends AppCompatActivity
                 //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
                 if (url.equals("http://externie.github.io/externieblog/"))
                     view.loadUrl(url);
-                else{
-                    if (!url.equals(mWebView4Profile.getUrl())){
-                        mWebView4Profile.loadUrl(url);
-                    }else{
-                        changePopupWindowState();
-                    }
+                else {
+//                    if (!url.equals(mWebView4Profile.getUrl())){
+//                        mWebView4Profile.loadUrl(url);
+//                    }else{
+//                        changePopupWindowState();
+//                    }
+                    jumpToPostActivity(url);
                 }
                 return true;
             }
@@ -219,10 +319,24 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
+        mWebView.addJavascriptInterface(this,"android");
+
         System.out.println("ContentHeight:" + mWebView.getContentHeight());
         WebSettings settings = mWebView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+
+        settings.setLoadWithOverviewMode(true);
+        settings.setSupportZoom(false);
+        settings.setLoadsImagesAutomatically(true);//异步加载图片
+    }
+
+    private void jumpToPostActivity(String url){
+        Intent intent = new Intent(MainActivity.this,PostActivity.class);
+        intent.putExtra("url",url);
+        startActivity(intent);
+//        finish();
     }
 
     @Override
@@ -243,23 +357,26 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+        mMenu = menu;
+//        testItem = menu.add("测试");
         return true;
     }
+
+    private MenuItem testItem;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            mWebView.reload();
-            return true;
+        String title = item.getTitle().toString();
+        for (int i=0 ; i < mMenu.size() ; i++){
+            if(title.equals(mMenu.getItem(i).getTitle().toString()) ){
+                String jsFunc = "javascript:selectCategory('"+ mMenu.getItem(i).getTitle() +"')";
+                mWebView.loadUrl(jsFunc);
+            }
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -372,5 +489,21 @@ public class MainActivity extends AppCompatActivity
             View text = findViewById(R.id.textforhide);
             popWin.showAtLocation(text, Gravity.BOTTOM, 0, 0);
         }
+    }
+
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return null;
+    }
+
+    @JavascriptInterface
+    public void setCategoryItem(final String str) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //在里对Android应用的UI进行处理
+                mMenu.add(str);
+            }
+        });
     }
 }

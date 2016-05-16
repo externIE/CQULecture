@@ -26,13 +26,12 @@
             android:layout_height="match_parent"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:expandedTitleMarginBottom="@dimen/toolbar_title_margin_bottom"
+            app:expandedTitleMarginStart="@dimen/toolbar_title_margin_start"
+            app:expandedTitleTextAppearance="?android:attr/textAppearanceLarge"
             android:layout_weight="0.9">
 
-            <!--这里放轮播控件-->
-
-
             <include  layout="@layout/bar_banner"/>
-
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -43,11 +42,7 @@
                 app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-
             </android.support.v7.widget.Toolbar>
-
-
-
 
         </android.support.design.widget.CollapsingToolbarLayout>
 
@@ -65,14 +60,7 @@
 
     <include layout="@layout/content_scrolling" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_input_add"
-        android:visibility="visible" />
+
 
     <TextView
         android:layout_width="match_parent"
