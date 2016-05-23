@@ -1,14 +1,11 @@
-package com.externie.views;
+package com.externie.EXViews;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 
 
-import com.nineoldandroids.view.ViewHelper;
-
 import java.util.List;
-import java.util.ResourceBundle;
 
 import cn.bingoogolapple.bgabanner.BGABanner;
 

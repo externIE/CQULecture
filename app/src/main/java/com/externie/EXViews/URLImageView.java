@@ -1,4 +1,4 @@
-package com.externie.views;
+package com.externie.EXViews;
 
 import android.content.Context;
 import android.util.AttributeSet;

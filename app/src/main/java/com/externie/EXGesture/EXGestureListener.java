@@ -1,19 +1,17 @@
-package com.externie.gesture;
+package com.externie.EXGesture;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.externie.cqulecture.MainActivity;
 
 /**
  * Created by externIE on 16/5/4.
  */
-public class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+public class EXGestureListener extends GestureDetector.SimpleOnGestureListener {
     private Context mContext;
-    public MyGestureListener(Context context) {
+    public EXGestureListener(Context context) {
         mContext = context;
     }
     // 滑动，按下后滑动
